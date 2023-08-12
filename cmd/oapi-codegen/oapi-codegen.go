@@ -27,6 +27,7 @@ import (
 
 	"github.com/deepmap/oapi-codegen/pkg/codegen"
 	"github.com/deepmap/oapi-codegen/pkg/util"
+	"github.com/getkin/kin-openapi/openapi3"
 )
 
 func errExit(format string, args ...interface{}) {
@@ -47,13 +48,14 @@ var (
 
 	// Deprecated: The options below will be removed in a future
 	// release. Please use the new config file format.
-	flagIncludeTags        string
-	flagExcludeTags        string
-	flagImportMapping      string
-	flagExcludeSchemas     string
-	flagResponseTypeSuffix string
-	flagAliasTypes         bool
-	flagInitalismOverrides bool
+	flagIncludeTags                  string
+	flagExcludeTags                  string
+	flagImportMapping                string
+	flagExcludeSchemas               string
+	flagResponseTypeSuffix           string
+	flagAliasTypes                   bool
+	flagInitalismOverrides           bool
+	circularReferenceCounterOverride int
 )
 
 type configuration struct {
@@ -100,6 +102,7 @@ func main() {
 	flag.StringVar(&flagResponseTypeSuffix, "response-type-suffix", "", "The suffix used for responses types.")
 	flag.BoolVar(&flagAliasTypes, "alias-types", false, "Alias type declarations of possible.")
 	flag.BoolVar(&flagInitalismOverrides, "initialism-overrides", false, "Use initialism overrides.")
+	flag.IntVar(&circularReferenceCounterOverride, "circular-reference-counter-limit", 3, "Override the value for circular reference checking when validating the schema.")
 
 	flag.Parse()
 
@@ -257,6 +260,7 @@ func main() {
 		fmt.Print(string(buf))
 		return
 	}
+	openapi3.CircularReferenceCounter = circularReferenceCounterOverride
 
 	swagger, err := util.LoadSwagger(flag.Arg(0))
 	if err != nil {
